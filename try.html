@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Animal Sound</title>
+  <style>
+    .card {
+      width: 200px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      margin: 20px;
+      font-family: sans-serif;
+    }
+
+    .animal-image {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .sound-link {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 12px;
+      background-color: #f4a261;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .sound-link:hover {
+      background-color: #e76f51;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Card for Lion -->
+  <div class="card">
+    <div class="image_container" onclick="speak('Lion')">
+      <img class="animal-image" src="image/animal/lion.jpg" alt="Lion">
+    </div>
+    <div class="title" onclick="speak('Lion')"><span>Lion</span></div>
+    <a href="sound/" class="sound-link" onclick="playSound(event, 'sound/og liion.mp3')">Sound</a>
+  </div>
+
+  <!-- Hidden reusable audio element -->
+  <audio id="audio-player"></audio>
+
+  <script>
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    function playSound(event, soundUrl) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const audio = document.getElementById("audio-player");
+      audio.src = soundUrl;
+
+      let playTime = 0;
+      let soundInterval;
+
+      audio.onloadedmetadata = function () {
+        const duration = audio.duration;
+
+        if (duration < 3) {
+          // Loop if shorter than 3 seconds
+          audio.loop = true;
+          audio.play().catch(e => console.log("Audio play failed:", e));
+
+          soundInterval = setInterval(() => {
+            playTime += duration;
+            if (playTime >= 3) {
+              audio.pause();
+              audio.currentTime = 0;
+              clearInterval(soundInterval);
+              audio.loop = false;
+            }
+          }, duration * 1000);
+        } else {
+          // Play only 3 seconds if longer
+          audio.play().catch(e => console.log("Audio play failed:", e));
+          setTimeout(() => {
+            audio.pause();
+            audio.currentTime = 0;
+          }, 3000);
+        }
+      };
+
+      audio.onerror = function () {
+        // Fallback if metadata not available
+        audio.play().catch(e => console.log("Fallback play failed:", e));
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+        }, 3000);
+      };
+    }
+  </script>
+
+</body>
+</html>
